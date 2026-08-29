@@ -11,15 +11,33 @@ import userRoutes from "./routes/user.routes";
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://mini-marketplace-mvp.vercel.app",
-  ],
-  credentials: true,
-}));
+// Enable CORS for all vercel.app domains, localhost, and custom origins
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Allow any localhost, 127.0.0.1, or *.vercel.app domain (including preview URLs)
+      if (
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        origin.endsWith(".vercel.app") ||
+        origin === "https://mini-marketplace-mvp.vercel.app" ||
+        origin === "https://mini-marketplace-mvp-2281.vercel.app"
+      ) {
+        return callback(null, true);
+      }
+
+      // Default allow
+      return callback(null, true);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 
 // Health check
