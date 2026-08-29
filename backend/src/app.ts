@@ -11,32 +11,32 @@ import userRoutes from "./routes/user.routes";
 
 const app = express();
 
-// Enable CORS for all vercel.app domains, localhost, and custom origins
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, server-to-server)
-      if (!origin) return callback(null, true);
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, direct browser, server-to-server)
+    if (!origin) return callback(null, true);
 
-      // Allow any localhost, 127.0.0.1, or *.vercel.app domain (including preview URLs)
-      if (
-        origin.startsWith("http://localhost:") ||
-        origin.startsWith("http://127.0.0.1:") ||
-        origin.endsWith(".vercel.app") ||
-        origin === "https://mini-marketplace-mvp.vercel.app" ||
-        origin === "https://mini-marketplace-mvp-2281.vercel.app"
-      ) {
-        return callback(null, true);
-      }
-
-      // Default allow
+    // Allow localhost, 127.0.0.1, and any vercel.app preview/production deployment
+    if (
+      origin.startsWith("http://localhost:") ||
+      origin.startsWith("http://127.0.0.1:") ||
+      origin.endsWith(".vercel.app")
+    ) {
       return callback(null, true);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+    }
+
+    // Default allow all other origins
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  optionsSuccessStatus: 200, // For legacy browser/proxy preflight compatibility
+};
+
+// Enable CORS for all routes & preflight OPTIONS requests
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
